@@ -307,7 +307,7 @@ def reload_settings():
         BOT_NAME = []
     SYSTEM_PROMPT = get_setting('SYSTEM_PROMPT') 
     if SYSTEM_PROMPT:
-        SYSTEM_PROMPT = SYSTEM_PROMPT.split(',')
+        SYSTEM_PROMPT = re.split(r',,', SYSTEM_PROMPT)
     else:
         SYSTEM_PROMPT = ""
     SYSTEM_PROMPT1 = str(SYSTEM_PROMPT[0]) if len(SYSTEM_PROMPT) > 0 else None
@@ -1064,11 +1064,14 @@ def handle_message(event):
                     bot_reply_list.append(['text', GACCOUNT_FAIL_MESSAGE])
                     line_reply(reply_token, bot_reply_list)
                     return 'OK'
-            if any(word in user_message for word in CORE_AI_TYPE_KEYWORDS) and "aitype" in FUNCTIONS and not exec_functions:
+            if any(word in user_message for word in CORE_AI_TYPE_KEYWORDS) and ("aitype_gpt" in FUNCTIONS or "aitype_gemini" in FUNCTIONS or "aitype_claude" in FUNCTIONS) and not exec_functions:
                 enable_quick_reply = True
-                quick_reply_items.append(['message', CORE_AI_TYPE_GPT_QUICK_REPLY, CORE_AI_TYPE_GPT_QUICK_REPLY])
-                quick_reply_items.append(['message', CORE_AI_TYPE_GEMINI_QUICK_REPLY, CORE_AI_TYPE_GEMINI_QUICK_REPLY])
-                quick_reply_items.append(['message', CORE_AI_TYPE_CLAUDE_QUICK_REPLY, CORE_AI_TYPE_CLAUDE_QUICK_REPLY])
+                if "aitype_gpt" in FUNCTIONS:
+                    quick_reply_items.append(['message', CORE_AI_TYPE_GPT_QUICK_REPLY, CORE_AI_TYPE_GPT_QUICK_REPLY])
+                if "aitype_gemini" in FUNCTIONS:
+                    quick_reply_items.append(['message', CORE_AI_TYPE_GEMINI_QUICK_REPLY, CORE_AI_TYPE_GEMINI_QUICK_REPLY])
+                if "aitype_claude" in FUNCTIONS:    
+                    quick_reply_items.append(['message', CORE_AI_TYPE_CLAUDE_QUICK_REPLY, CORE_AI_TYPE_CLAUDE_QUICK_REPLY])
                 head_message = head_message + CORE_AI_TYPE_GUIDE_MESSAGE
             if any(word in user_message for word in SYSTEM_PROMPT_KEYWORDS) and SYSTEM_PROMPT1 and SYSTEM_PROMPT2 and not exec_functions:
                 enable_quick_reply = True
@@ -1135,7 +1138,7 @@ def handle_message(event):
                 total_chars = len(encoding.encode(system_prompt_temp)) + len(encoding.encode(temp_messages)) + sum([len(encoding.encode(msg['content'])) for msg in user['messages']])
 
             try:
-                if CORE_AI_TYPE == 'GPT':
+                if core_ai_type_personal == 'GPT':
                     temp_messages_final = [{'role': 'system', 'content': system_prompt_temp}]
                     temp_messages_final.extend(user['messages'])
                     temp_messages_final.append({'role': 'user', 'content': temp_messages})
@@ -1159,7 +1162,7 @@ def handle_message(event):
                     if enable_quick_reply == True:
                         public_img_url = []
 
-                if core_ai_type_personal == 'Vertex':
+                elif core_ai_type_personal == 'Vertex':
                     temp_messages_final = [{'role': 'system', 'content': system_prompt_temp}]
                     temp_messages_final.extend(user['messages'])
                     temp_messages_final.append({'role': 'user', 'content': temp_messages})
